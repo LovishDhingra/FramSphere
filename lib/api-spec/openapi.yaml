@@ -1,0 +1,992 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Farmer Market Intelligence Platform API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: prices
+    description: Mandi price data
+  - name: msp
+    description: Minimum Support Price data
+  - name: markets
+    description: Market listings and recommendations
+  - name: fairness
+    description: Price fairness analysis
+  - name: chat
+    description: AI chatbot via RAG pipeline
+  - name: alerts
+    description: Exploitation and anomaly alerts
+  - name: schemes
+    description: Government scheme recommendations
+  - name: weather
+    description: Weather-based price predictions
+  - name: dashboard
+    description: Dashboard summary data
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /prices:
+    get:
+      operationId: listPrices
+      tags: [prices]
+      summary: List mandi prices
+      parameters:
+        - name: crop
+          in: query
+          schema:
+            type: string
+        - name: market
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of prices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MandiPrice"
+
+  /prices/trends:
+    get:
+      operationId: getPriceTrends
+      tags: [prices]
+      summary: Get price trends for a crop
+      parameters:
+        - name: crop
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: market
+          in: query
+          schema:
+            type: string
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: Price trend data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PriceTrend"
+
+  /prices/compare:
+    get:
+      operationId: comparePrices
+      tags: [prices]
+      summary: Compare prices across markets
+      parameters:
+        - name: crop
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Price comparison across markets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketComparison"
+
+  /msp:
+    get:
+      operationId: listMsp
+      tags: [msp]
+      summary: List Minimum Support Prices
+      parameters:
+        - name: crop
+          in: query
+          schema:
+            type: string
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: MSP data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MspRecord"
+
+  /markets:
+    get:
+      operationId: listMarkets
+      tags: [markets]
+      summary: List all markets
+      parameters:
+        - name: state
+          in: query
+          schema:
+            type: string
+        - name: district
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of markets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Market"
+
+  /markets/recommend:
+    get:
+      operationId: recommendMarkets
+      tags: [markets]
+      summary: Recommend best markets for a crop
+      parameters:
+        - name: crop
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: location
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recommended markets ranked by price
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketRecommendation"
+
+  /markets/states:
+    get:
+      operationId: listMarketStates
+      tags: [markets]
+      summary: List all states that have markets
+      responses:
+        "200":
+          description: List of states
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketStates"
+
+  /markets/nearby:
+    get:
+      operationId: getNearbyMarkets
+      tags: [markets]
+      summary: Get markets near a GPS coordinate
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: lng
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: radius
+          in: query
+          schema:
+            type: integer
+            default: 200
+      responses:
+        "200":
+          description: Nearby markets sorted by distance
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NearbyMarket"
+
+  /fairness/analyze:
+    post:
+      operationId: analyzeFairness
+      tags: [fairness]
+      summary: Analyze price fairness for a transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FairnessRequest"
+      responses:
+        "200":
+          description: Fairness analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FairnessResult"
+
+  /fairness/anomalies:
+    get:
+      operationId: listAnomalies
+      tags: [fairness]
+      summary: List recent price anomalies
+      parameters:
+        - name: state
+          in: query
+          schema:
+            type: string
+        - name: crop
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Price anomaly reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PriceAnomaly"
+
+  /chat:
+    post:
+      operationId: chatQuery
+      tags: [chat]
+      summary: Send a query to the RAG-powered AI chatbot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: AI-generated response with context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+
+  /chat/history:
+    get:
+      operationId: getChatHistory
+      tags: [chat]
+      summary: Get recent chat history
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Recent chat messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatMessage"
+
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [alerts]
+      summary: List exploitation and anomaly alerts
+      parameters:
+        - name: state
+          in: query
+          schema:
+            type: string
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+      responses:
+        "200":
+          description: Active alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+
+  /schemes:
+    get:
+      operationId: listSchemes
+      tags: [schemes]
+      summary: List government schemes for farmers
+      parameters:
+        - name: crop
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Relevant government schemes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GovernmentScheme"
+
+  /weather/prediction:
+    get:
+      operationId: getWeatherPricePrediction
+      tags: [weather]
+      summary: Get weather-based price prediction
+      parameters:
+        - name: crop
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: market
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 7
+      responses:
+        "200":
+          description: Weather-based price forecast
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherPrediction"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary statistics
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/top-crops:
+    get:
+      operationId: getTopCrops
+      tags: [dashboard]
+      summary: Get top crops by trading volume
+      responses:
+        "200":
+          description: Top crops list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopCrop"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    MandiPrice:
+      type: object
+      properties:
+        id:
+          type: integer
+        crop:
+          type: string
+        variety:
+          type: string
+        market:
+          type: string
+        state:
+          type: string
+        district:
+          type: string
+        minPrice:
+          type: number
+        maxPrice:
+          type: number
+        modalPrice:
+          type: number
+        arrivals:
+          type: ["number", "null"]
+        priceDate:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - crop
+        - variety
+        - market
+        - state
+        - district
+        - minPrice
+        - maxPrice
+        - modalPrice
+        - arrivals
+        - priceDate
+        - createdAt
+
+    PriceTrend:
+      type: object
+      properties:
+        date:
+          type: string
+        modalPrice:
+          type: number
+        minPrice:
+          type: number
+        maxPrice:
+          type: number
+        arrivals:
+          type: ["number", "null"]
+      required:
+        - date
+        - modalPrice
+        - minPrice
+        - maxPrice
+        - arrivals
+
+    MarketComparison:
+      type: object
+      properties:
+        market:
+          type: string
+        state:
+          type: string
+        modalPrice:
+          type: number
+        deviation:
+          type: number
+        rank:
+          type: integer
+      required:
+        - market
+        - state
+        - modalPrice
+        - deviation
+        - rank
+
+    MspRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+        crop:
+          type: string
+        variety:
+          type: ["string", "null"]
+        mspPrice:
+          type: number
+        season:
+          type: string
+        year:
+          type: integer
+        announcedBy:
+          type: string
+      required:
+        - id
+        - crop
+        - variety
+        - mspPrice
+        - season
+        - year
+        - announcedBy
+
+    Market:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        state:
+          type: string
+        district:
+          type: string
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
+        type:
+          type: string
+      required:
+        - id
+        - name
+        - state
+        - district
+        - latitude
+        - longitude
+        - type
+
+    MarketRecommendation:
+      type: object
+      properties:
+        market:
+          type: string
+        state:
+          type: string
+        district:
+          type: string
+        modalPrice:
+          type: number
+        mspPrice:
+          type: ["number", "null"]
+        premiumOverMsp:
+          type: ["number", "null"]
+        distanceKm:
+          type: ["number", "null"]
+        score:
+          type: number
+        reason:
+          type: string
+      required:
+        - market
+        - state
+        - district
+        - modalPrice
+        - mspPrice
+        - premiumOverMsp
+        - distanceKm
+        - score
+        - reason
+
+    FairnessRequest:
+      type: object
+      properties:
+        crop:
+          type: string
+        market:
+          type: string
+        state:
+          type: string
+        offeredPrice:
+          type: number
+      required:
+        - crop
+        - market
+        - state
+        - offeredPrice
+
+    FairnessResult:
+      type: object
+      properties:
+        offeredPrice:
+          type: number
+        mandiModalPrice:
+          type: number
+        mspPrice:
+          type: ["number", "null"]
+        deviationFromMandi:
+          type: number
+        deviationFromMsp:
+          type: ["number", "null"]
+        anomalyScore:
+          type: number
+        verdict:
+          type: string
+          enum: [fair, suspicious, exploitative]
+        explanation:
+          type: string
+        recommendation:
+          type: string
+      required:
+        - offeredPrice
+        - mandiModalPrice
+        - mspPrice
+        - deviationFromMandi
+        - deviationFromMsp
+        - anomalyScore
+        - verdict
+        - explanation
+        - recommendation
+
+    PriceAnomaly:
+      type: object
+      properties:
+        id:
+          type: integer
+        crop:
+          type: string
+        market:
+          type: string
+        state:
+          type: string
+        reportedPrice:
+          type: number
+        expectedPrice:
+          type: number
+        deviationPct:
+          type: number
+        anomalyScore:
+          type: number
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        detectedAt:
+          type: string
+      required:
+        - id
+        - crop
+        - market
+        - state
+        - reportedPrice
+        - expectedPrice
+        - deviationPct
+        - anomalyScore
+        - severity
+        - detectedAt
+
+    ChatRequest:
+      type: object
+      properties:
+        query:
+          type: string
+        sessionId:
+          type: ["string", "null"]
+        context:
+          type: object
+          properties:
+            crop:
+              type: string
+            market:
+              type: string
+            state:
+              type: string
+      required:
+        - query
+
+    ChatResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+        sources:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+              type:
+                type: string
+              relevanceScore:
+                type: number
+            required:
+              - text
+              - type
+              - relevanceScore
+        sessionId:
+          type: string
+        latencyMs:
+          type: number
+        model:
+          type: string
+      required:
+        - answer
+        - sources
+        - sessionId
+        - latencyMs
+        - model
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: string
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        createdAt:
+          type: string
+        latencyMs:
+          type: ["number", "null"]
+      required:
+        - id
+        - sessionId
+        - role
+        - content
+        - createdAt
+        - latencyMs
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [exploitation, anomaly, msp_violation, market_crash]
+        crop:
+          type: string
+        market:
+          type: string
+        state:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        title:
+          type: string
+        description:
+          type: string
+        affectedFarmers:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+        isResolved:
+          type: boolean
+      required:
+        - id
+        - type
+        - crop
+        - market
+        - state
+        - severity
+        - title
+        - description
+        - affectedFarmers
+        - createdAt
+        - isResolved
+
+    GovernmentScheme:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        ministry:
+          type: string
+        description:
+          type: string
+        eligibility:
+          type: string
+        benefit:
+          type: string
+        applicationUrl:
+          type: ["string", "null"]
+        applicableCrops:
+          type: array
+          items:
+            type: string
+        applicableStates:
+          type: array
+          items:
+            type: string
+        deadline:
+          type: ["string", "null"]
+      required:
+        - id
+        - name
+        - ministry
+        - description
+        - eligibility
+        - benefit
+        - applicationUrl
+        - applicableCrops
+        - applicableStates
+        - deadline
+
+    WeatherPrediction:
+      type: object
+      properties:
+        crop:
+          type: string
+        market:
+          type: string
+        currentPrice:
+          type: number
+        predictions:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              predictedPrice:
+                type: number
+              confidence:
+                type: number
+              weatherFactor:
+                type: string
+            required:
+              - date
+              - predictedPrice
+              - confidence
+              - weatherFactor
+        weatherSummary:
+          type: string
+        recommendedAction:
+          type: string
+      required:
+        - crop
+        - market
+        - currentPrice
+        - predictions
+        - weatherSummary
+        - recommendedAction
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalMarkets:
+          type: integer
+        totalCrops:
+          type: integer
+        activeAlerts:
+          type: integer
+        averageMspDeviation:
+          type: number
+        topGainer:
+          type: object
+          properties:
+            crop:
+              type: string
+            change:
+              type: number
+          required:
+            - crop
+            - change
+        topLoser:
+          type: object
+          properties:
+            crop:
+              type: string
+            change:
+              type: number
+          required:
+            - crop
+            - change
+        totalAnomaliesDetected:
+          type: integer
+        fairPriceIndex:
+          type: number
+      required:
+        - totalMarkets
+        - totalCrops
+        - activeAlerts
+        - averageMspDeviation
+        - topGainer
+        - topLoser
+        - totalAnomaliesDetected
+        - fairPriceIndex
+
+    MarketStates:
+      type: object
+      required: [states]
+      properties:
+        states:
+          type: array
+          items:
+            type: string
+
+    NearbyMarket:
+      type: object
+      required: [id, name, state, district, type, distanceKm]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        state:
+          type: string
+        district:
+          type: string
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
+        type:
+          type: string
+        distanceKm:
+          type: number
+
+    TopCrop:
+      type: object
+      properties:
+        crop:
+          type: string
+        avgPrice:
+          type: number
+        mspPrice:
+          type: ["number", "null"]
+        priceChange7d:
+          type: number
+        volume:
+          type: number
+        alertCount:
+          type: integer
+      required:
+        - crop
+        - avgPrice
+        - mspPrice
+        - priceChange7d
+        - volume
+        - alertCount
