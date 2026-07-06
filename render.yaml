@@ -38,6 +38,10 @@ services:
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/farmer-market run build
     staticPublishPath: artifacts/farmer-market/dist/public
     envVars:
+      # REQUIRED: set this to your farm-sphere-api service URL, e.g.
+      # https://farm-sphere-api.onrender.com
+      # Without it, browser API calls hit the static-site origin and get
+      # index.html back instead of JSON, causing a white screen after login.
       - key: VITE_API_BASE_URL
         sync: false
       - key: VITE_CLERK_PUBLISHABLE_KEY
