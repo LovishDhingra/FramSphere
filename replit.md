@@ -97,3 +97,34 @@ lib/
 - 7 government schemes with eligibility and benefits
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## Running on Replit
+
+### Workflows
+
+- **`artifacts/api-server: API Server`** — Express API on port 8080 (console output)
+- **`artifacts/farmer-market: web`** — React + Vite frontend on port 23359 (web preview at `/`)
+
+Start both via the **Project** run button, or restart each workflow individually.
+
+### Required Secrets
+
+| Secret | Where to get it |
+|---|---|
+| `OPENAI_API_KEY` | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+| `CLERK_SECRET_KEY` | Clerk Dashboard → API Keys |
+| `CLERK_PUBLISHABLE_KEY` | Clerk Dashboard → API Keys (starts with `pk_`) |
+
+`DATABASE_URL` is read from `.env` (points to the Render PostgreSQL instance).
+
+### First-time DB setup
+
+```bash
+pnpm --filter @workspace/db run push
+```
+
+This creates all tables. Run once after cloning or when the schema changes.
+
+### Optional: Live mandi data
+
+Set `DATA_GOV_IN_API_KEY` (from [data.gov.in](https://data.gov.in)) to enable live price sync. Without it the app uses seeded historical data.
