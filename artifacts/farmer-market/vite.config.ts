@@ -11,6 +11,14 @@ const basePath = process.env.BASE_PATH ?? "/";
 
 export default defineConfig({
   base: basePath,
+  define: {
+    // Bridge server-side secret to Vite's client env (CLERK_PUBLISHABLE_KEY is a public key)
+    "import.meta.env.VITE_CLERK_PUBLISHABLE_KEY": JSON.stringify(
+      process.env.VITE_CLERK_PUBLISHABLE_KEY ??
+        process.env.CLERK_PUBLISHABLE_KEY ??
+        "",
+    ),
+  },
   plugins: [
     react(),
     tailwindcss({ optimize: false }),
@@ -50,16 +58,12 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
-    // When running locally (outside Replit), proxy /api requests to the Express server.
-    // In Replit, the application router handles this automatically.
-    ...(process.env.REPL_ID === undefined && {
-      proxy: {
-        "/api": {
-          target: process.env.VITE_API_URL ?? "http://localhost:3001",
-          changeOrigin: true,
-        },
+    proxy: {
+      "/api": {
+        target: process.env.VITE_API_URL ?? "http://localhost:8080",
+        changeOrigin: true,
       },
-    }),
+    },
   },
   preview: {
     port,

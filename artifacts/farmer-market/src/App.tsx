@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Component, type ReactNode } from "react";
 import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
@@ -27,6 +27,61 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// ---------------------------------------------------------------------------
+// Error boundary — prevents any React render error from producing a blank
+// white screen.  Catches runtime TypeErrors (e.g. undefined property access)
+// and shows a friendly recovery UI instead.
+// ---------------------------------------------------------------------------
+interface ErrorBoundaryState {
+  hasError: boolean;
+  message: string;
+}
+
+class AppErrorBoundary extends Component<
+  { children: ReactNode },
+  ErrorBoundaryState
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, message: "" };
+  }
+
+  static getDerivedStateFromError(error: unknown): ErrorBoundaryState {
+    const message =
+      error instanceof Error ? error.message : "An unexpected error occurred.";
+    return { hasError: true, message };
+  }
+
+  componentDidCatch(error: unknown, info: { componentStack?: string }) {
+    console.error("[AppErrorBoundary]", error, info?.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
+          <div className="max-w-md text-center space-y-4">
+            <h1 className="text-2xl font-bold text-foreground">
+              Something went wrong
+            </h1>
+            <p className="text-muted-foreground text-sm">{this.state.message}</p>
+            <button
+              className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              onClick={() => {
+                this.setState({ hasError: false, message: "" });
+                window.location.reload();
+              }}
+            >
+              Reload page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
@@ -269,9 +324,11 @@ function ClerkProviderWithRoutes() {
 
 function App() {
   return (
-    <WouterRouter base={basePath}>
-      <ClerkProviderWithRoutes />
-    </WouterRouter>
+    <AppErrorBoundary>
+      <WouterRouter base={basePath}>
+        <ClerkProviderWithRoutes />
+      </WouterRouter>
+    </AppErrorBoundary>
   );
 }
 

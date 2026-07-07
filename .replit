@@ -9,7 +9,6 @@ args = ["pnpm", "store", "prune"]
 env = { "CI" = "true" }
 
 [workflows]
-runButton = "Project"
 
 [agent]
 stack = "PNPM_WORKSPACE"
@@ -33,3 +32,9 @@ externalPort = 3000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+AI_INTEGRATIONS_OPENAI_BASE_URL = "https://api.groq.com/openai/v1"
+OPENAI_MODEL = "llama-3.3-70b-versatile"

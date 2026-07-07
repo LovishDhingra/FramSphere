@@ -83,10 +83,10 @@ export default function Dashboard() {
               <TrendingUp className="h-4 w-4 text-secondary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{summary.topGainer.crop}</div>
+              <div className="text-2xl font-bold">{summary.topGainer?.crop ?? "—"}</div>
               <p className="text-xs font-medium text-secondary mt-1 flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1" />
-                +{summary.topGainer.change}% this week
+                {summary.topGainer ? `+${summary.topGainer.change}% this week` : "No data yet"}
               </p>
             </CardContent>
           </Card>
@@ -97,10 +97,10 @@ export default function Dashboard() {
               <TrendingDown className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{summary.topLoser.crop}</div>
+              <div className="text-2xl font-bold">{summary.topLoser?.crop ?? "—"}</div>
               <p className="text-xs font-medium text-orange-500 mt-1 flex items-center">
                 <TrendingDown className="h-3 w-3 mr-1" />
-                {summary.topLoser.change}% this week
+                {summary.topLoser ? `${summary.topLoser.change}% this week` : "No data yet"}
               </p>
             </CardContent>
           </Card>
