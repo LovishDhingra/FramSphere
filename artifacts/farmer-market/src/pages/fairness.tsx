@@ -17,8 +17,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 
 const CROPS = [
-  "Wheat", "Paddy", "Cotton", "Onion", "Tomato",
-  "Mustard", "Soybean", "Sugarcane", "Maize", "Gram",
+  "Wheat", "Paddy(Common)", "Paddy(Basmati)", "Cotton", "Onion",
+  "Tomato", "Mustard", "Soyabean", "Maize", "Potato", "Green Chilli",
 ];
 
 export default function Fairness() {

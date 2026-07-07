@@ -112,3 +112,44 @@ export async function getMandiPriceCount(): Promise<number> {
   const [row] = await db.select({ count: sql<string>`COUNT(*)` }).from(mandiPricesTable);
   return Number(row?.count ?? 0);
 }
+
+/**
+ * Background geocoding backfill: finds all markets that were inserted without
+ * coordinates (because they existed before geocoding was added, or because the
+ * live geocoding failed at insert time) and fills them in using the Open-Meteo
+ * geocoding API (free, no key needed). Runs non-blocking in the background
+ * with a 300 ms delay between requests to respect rate limits.
+ */
+export async function geocodeMissingMarkets(): Promise<void> {
+  const missing = await db
+    .select({ id: marketsTable.id, name: marketsTable.name, district: marketsTable.district, state: marketsTable.state })
+    .from(marketsTable)
+    .where(sql`${marketsTable.latitude} IS NULL`);
+
+  if (missing.length === 0) return;
+
+  logger.info({ count: missing.length }, "geocoding markets that are missing coordinates");
+
+  let geocoded = 0;
+  for (const m of missing) {
+    try {
+      const geo = await geocodeIndianLocation(
+        `${m.name}, ${m.district}, ${m.state}`,
+        `${m.district}, ${m.state}`,
+      );
+      if (geo) {
+        await db
+          .update(marketsTable)
+          .set({ latitude: String(geo.latitude), longitude: String(geo.longitude) })
+          .where(eq(marketsTable.id, m.id));
+        geocoded++;
+      }
+    } catch (err) {
+      logger.warn({ err, market: m.name }, "geocoding failed for market");
+    }
+    // 300 ms between requests — Open-Meteo geocoding is free but rate-limited
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+
+  logger.info({ geocoded, total: missing.length }, "finished geocoding missing markets");
+}

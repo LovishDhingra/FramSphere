@@ -248,7 +248,7 @@ Be empathetic to farmers' challenges. Detect and flag any exploitation patterns.
 
   const completion = await openai.chat.completions.create({
     model,
-    max_completion_tokens: 1024,
+    max_tokens: 1024,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: query },

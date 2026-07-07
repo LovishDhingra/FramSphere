@@ -12,8 +12,8 @@ import { Search, Filter, LineChart, MapPin, IndianRupee } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function Prices() {
-  const [crop, setCrop] = useState("Wheat");
-  const [state, setState] = useState("Punjab");
+  const [crop, setCrop] = useState("All");
+  const [state, setState] = useState("All");
   
   const { data: prices, isLoading: isPricesLoading } = useListPrices({ 
     crop: crop === "All" ? undefined : crop, 
@@ -26,7 +26,10 @@ export default function Prices() {
     state: state === "All" ? undefined : state 
   }, { query: { enabled: !!crop } });
 
-  const crops = ["All", "Wheat", "Paddy", "Cotton", "Maize", "Soyabean", "Mustard", "Gram"];
+  const crops = [
+    "All", "Wheat", "Paddy(Common)", "Paddy(Basmati)", "Cotton", "Maize",
+    "Soyabean", "Mustard", "Onion", "Tomato", "Potato", "Green Chilli",
+  ];
   const states = ["All", "Punjab", "Haryana", "Madhya Pradesh", "Maharashtra", "Uttar Pradesh", "Rajasthan"];
 
   return (
