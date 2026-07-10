@@ -1,28 +1,9 @@
 
-Claude finished the response
-https://github.com/LovishDhingra/FramSphere
-
-make a  beautiful readme  file to for this repo
-
-
-Synthesized repository details and architected polished README documentation
-Synthesized repository details and architected polished README documentation
-Pulled the details straight from your replit.md (stack, features, architecture, commands, seeded data) and turned it into a full README with badges, a features table, architecture tree, and setup steps. Just drop it in the repo root as README.md.
-
-
-Readme
-Document · MD 
-
-Want to be notified when Claude responds?
 
 
 
 
 
-Claude is AI and can make mistakes. Please double-check cited sources.
-
-
-Readme · MD
 # 🌾 FramSphere
  
 **AI-powered Farmer Market Intelligence Platform** — helping Indian farmers detect price exploitation, discover the best markets to sell in, and get AI-driven selling advice.
